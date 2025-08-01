@@ -5,14 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Motion Control Ball</title>
     <style>
-        /* Basic CSS for a clean, full-screen layout */
+        /* Modern CSS with enhanced styling */
         body, html {
             margin: 0;
             padding: 0;
             width: 100%;
             height: 100%;
             overflow: hidden;
-            background-color: #1a1a1a;
+            background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
             color: #ffffff;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             display: flex;
@@ -20,62 +20,181 @@
             align-items: center;
             text-align: center;
         }
-        /* Canvas styling */
+
+        /* Canvas styling with glow effect */
         canvas {
-            background-color: #2c2c2c;
+            background: radial-gradient(circle at center, #2c2c2c, #1a1a1a);
             display: block;
-            border-radius: 12px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            border-radius: 20px;
+            box-shadow: 
+                0 20px 40px rgba(0,0,0,0.3),
+                0 0 20px rgba(0, 122, 255, 0.2),
+                inset 0 1px 0 rgba(255,255,255,0.1);
+            border: 2px solid rgba(255,255,255,0.1);
         }
-        /* Styling for the initial overlay and button */
+
+        /* Start screen styling */
         #start-screen {
             position: absolute;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.7);
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.9), rgba(26, 26, 46, 0.95));
+            backdrop-filter: blur(10px);
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             z-index: 10;
         }
+
         #start-button {
-            padding: 15px 30px;
-            font-size: 1.2rem;
+            padding: 18px 40px;
+            font-size: 1.3rem;
             font-weight: bold;
             color: #ffffff;
             background: linear-gradient(145deg, #007aff, #005bb5);
             border: none;
             border-radius: 50px;
             cursor: pointer;
-            box-shadow: 0 4px 15px rgba(0, 122, 255, 0.4);
-            transition: all 0.3s ease;
+            box-shadow: 
+                0 8px 25px rgba(0, 122, 255, 0.4),
+                inset 0 1px 0 rgba(255,255,255,0.2);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
         }
+
         #start-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0, 122, 255, 0.6);
+            transform: translateY(-3px);
+            box-shadow: 
+                0 12px 35px rgba(0, 122, 255, 0.6),
+                inset 0 1px 0 rgba(255,255,255,0.2);
         }
+
+        #start-button:active {
+            transform: translateY(-1px);
+        }
+
         h1 {
-            font-size: 2rem;
+            font-size: 2.5rem;
             margin-bottom: 1rem;
+            background: linear-gradient(135deg, #007aff, #00d4ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 20px rgba(0, 122, 255, 0.3);
         }
+
         p {
+            font-size: 1.1rem;
+            max-width: 85%;
+            margin-bottom: 2.5rem;
+            opacity: 0.9;
+            line-height: 1.5;
+        }
+
+        /* Sensor display */
+        #sensor-display {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 15px;
+            font-size: 0.9rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+            z-index: 5;
+            display: none;
+            min-width: 160px;
+        }
+
+        .sensor-value {
+            margin: 5px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .sensor-bar {
+            width: 60px;
+            height: 6px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-left: 10px;
+        }
+
+        .sensor-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #007aff, #00d4ff);
+            transition: width 0.1s ease;
+            border-radius: 3px;
+        }
+
+        /* Score display */
+        #score-display {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 15px;
             font-size: 1rem;
-            max-width: 80%;
-            margin-bottom: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+            z-index: 5;
+            display: none;
+        }
+
+        /* Pulse animation for start button */
+        @keyframes pulse {
+            0% { transform: translateY(-3px) scale(1); }
+            50% { transform: translateY(-3px) scale(1.05); }
+            100% { transform: translateY(-3px) scale(1); }
+        }
+
+        #start-button:hover {
+            animation: pulse 2s infinite;
         }
     </style>
 </head>
 <body>
 
-    <!-- This screen asks for permission before starting the game -->
+    <!-- Start screen -->
     <div id="start-screen">
-        <h1>Motion Ball</h1>
-        <p>Tilt your device to roll the ball on the plate. Press Start to enable motion sensors.</p>
-        <button id="start-button">Start</button>
+        <h1>🎯 Motion Ball</h1>
+        <p>Tilt your device to roll the glowing ball around the plate. Collect points by staying in control!</p>
+        <button id="start-button">🚀 Start Game</button>
     </div>
 
-    <!-- The canvas is where the game is drawn -->
+    <!-- Sensor display -->
+    <div id="sensor-display">
+        <div class="sensor-value">
+            <span>Tilt X:</span>
+            <div class="sensor-bar"><div class="sensor-fill" id="tilt-x-fill"></div></div>
+            <span id="tilt-x-value">0.0</span>
+        </div>
+        <div class="sensor-value">
+            <span>Tilt Y:</span>
+            <div class="sensor-bar"><div class="sensor-fill" id="tilt-y-fill"></div></div>
+            <span id="tilt-y-value">0.0</span>
+        </div>
+        <div class="sensor-value">
+            <span>Speed:</span>
+            <span id="speed-value">0.0</span>
+        </div>
+    </div>
+
+    <!-- Score display -->
+    <div id="score-display">
+        <div>⏱️ Time: <span id="time-value">0s</span></div>
+        <div>🎯 Control: <span id="control-score">100%</span></div>
+    </div>
+
+    <!-- Game canvas -->
     <canvas id="gameCanvas"></canvas>
 
     <script>
@@ -84,47 +203,92 @@
         const ctx = canvas.getContext('2d');
         const startScreen = document.getElementById('start-screen');
         const startButton = document.getElementById('start-button');
+        const sensorDisplay = document.getElementById('sensor-display');
+        const scoreDisplay = document.getElementById('score-display');
 
         // --- GAME & PHYSICS VARIABLES ---
         let plate, ball;
-        // These will store the acceleration values from the sensor
-        let accelX = 0;
-        let accelY = 0;
-        const FRICTION = 0.985; // Slightly increased friction for better control
-        const SENSITIVITY = 0.4; // Sensitivity multiplier for acceleration
+        let accelX = 0, accelY = 0;
+        let smoothedAccelX = 0, smoothedAccelY = 0;
+        
+        // Enhanced physics constants
+        const FRICTION = 0.995;          // Increased friction for smoother movement
+        const SENSITIVITY = 0.15;        // Reduced sensitivity for better control
+        const SMOOTHING = 0.85;          // Smoothing factor for acceleration
+        const MAX_VELOCITY = 3;          // Maximum velocity limit
+        const BOUNCE_DAMPING = 0.7;      // Bounce damping factor
+
+        // Game state
+        let gameStartTime = 0;
+        let gameTime = 0;
+        let controlScore = 100;
+        let isGameRunning = false;
+
+        // Visual effects
+        let particles = [];
+        let plateRotation = 0;
+        let ballTrail = [];
+
+        // --- PARTICLE SYSTEM ---
+        class Particle {
+            constructor(x, y, color = '#007aff') {
+                this.x = x;
+                this.y = y;
+                this.vx = (Math.random() - 0.5) * 2;
+                this.vy = (Math.random() - 0.5) * 2;
+                this.life = 1.0;
+                this.maxLife = 1.0;
+                this.color = color;
+                this.size = Math.random() * 3 + 1;
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.life -= 0.02;
+                this.vx *= 0.98;
+                this.vy *= 0.98;
+                return this.life > 0;
+            }
+
+            draw() {
+                const alpha = this.life / this.maxLife;
+                ctx.save();
+                ctx.globalAlpha = alpha;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+                ctx.restore();
+            }
+        }
 
         // --- SETUP FUNCTIONS ---
-
-        /**
-         * Resizes the canvas to fit the window while maintaining a good aspect ratio.
-         */
         function resizeCanvas() {
-            const size = Math.min(window.innerWidth, window.innerHeight) * 0.9;
+            const size = Math.min(window.innerWidth, window.innerHeight) * 0.85;
             canvas.width = size;
             canvas.height = size;
 
-            // Re-initialize game objects with new dimensions
             plate = {
                 x: canvas.width / 2,
                 y: canvas.height / 2,
-                radius: canvas.width / 2 * 0.95
+                radius: canvas.width / 2 * 0.9,
+                innerRadius: canvas.width / 2 * 0.85
             };
-            if (!ball) { // Only set initial position once
+
+            if (!ball) {
                 ball = {
                     x: canvas.width / 2,
                     y: canvas.height / 2,
-                    radius: canvas.width / 20,
-                    vx: 0, // velocity x
-                    vy: 0  // velocity y
+                    radius: canvas.width / 25,
+                    vx: 0,
+                    vy: 0,
+                    glowIntensity: 0
                 };
             }
         }
 
-        /**
-         * Requests permission to access device motion sensors using the DeviceMotionEvent API.
-         */
         function requestMotionPermission() {
-            // Check for the modern permission API, common on iOS 13+
             if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
                 DeviceMotionEvent.requestPermission()
                     .then(permissionState => {
@@ -132,7 +296,7 @@
                             window.addEventListener('devicemotion', handleMotion);
                             startGame();
                         } else {
-                            alert('Permission to use motion sensors was denied.');
+                            alert('Permission to use motion sensors was denied. The game needs motion sensors to work properly.');
                         }
                     })
                     .catch((error) => {
@@ -140,107 +304,270 @@
                         alert('Could not get permission for motion sensors.');
                     });
             } else {
-                // For Android and other devices that don't require explicit permission via this API
                 window.addEventListener('devicemotion', handleMotion);
                 startGame();
             }
         }
 
-        /**
-         * Hides the start screen and begins the animation loop.
-         */
         function startGame() {
             startScreen.style.display = 'none';
+            sensorDisplay.style.display = 'block';
+            scoreDisplay.style.display = 'block';
+            isGameRunning = true;
+            gameStartTime = Date.now();
             gameLoop();
         }
-        
-        // --- EVENT HANDLERS ---
 
-        /**
-         * Captures the device's acceleration data.
-         * @param {DeviceMotionEvent} event - The motion data.
-         */
+        // --- EVENT HANDLERS ---
         function handleMotion(event) {
-            // Using accelerationIncludingGravity to get the direction of gravity's pull
             const { x, y } = event.accelerationIncludingGravity;
             
-            // The x and y from the sensor correspond to the phone's axes.
-            // We map them to our canvas coordinates.
-            accelX = x * SENSITIVITY;
-            accelY = y * SENSITIVITY;
+            if (x !== null && y !== null) {
+                // Apply sensitivity and clamp values
+                accelX = Math.max(-10, Math.min(10, x * SENSITIVITY));
+                accelY = Math.max(-10, Math.min(10, y * SENSITIVITY));
+                
+                // Smooth the acceleration values
+                smoothedAccelX = smoothedAccelX * SMOOTHING + accelX * (1 - SMOOTHING);
+                smoothedAccelY = smoothedAccelY * SMOOTHING + accelY * (1 - SMOOTHING);
+            }
         }
-        
-        // Add event listeners
-        window.addEventListener('resize', resizeCanvas);
-        startButton.addEventListener('click', requestMotionPermission);
 
+        // --- GAME LOGIC ---
+        function updatePhysics() {
+            // Apply smoothed acceleration to velocity
+            ball.vx += smoothedAccelX;
+            ball.vy -= smoothedAccelY; // Inverted for correct direction
 
-        // --- GAME LOOP & DRAWING ---
-
-        /**
-         * The main animation loop. Updates physics and redraws the canvas.
-         */
-        function gameLoop() {
-            // --- 1. UPDATE PHYSICS ---
-            
-            // Update velocity based on acceleration.
-            // The 'y' from the sensor often corresponds to the vertical tilt,
-            // but we negate it because a positive 'y' acceleration should move the ball "down" (positive y in canvas).
-            ball.vx += accelX;
-            ball.vy -= accelY; // Note the subtraction here to correct the axis direction
-            
-            // Apply friction to slow the ball down
+            // Apply friction
             ball.vx *= FRICTION;
             ball.vy *= FRICTION;
 
-            // Update position based on velocity
+            // Limit maximum velocity
+            const speed = Math.sqrt(ball.vx * ball.vx + ball.vy * ball.vy);
+            if (speed > MAX_VELOCITY) {
+                ball.vx = (ball.vx / speed) * MAX_VELOCITY;
+                ball.vy = (ball.vy / speed) * MAX_VELOCITY;
+            }
+
+            // Update position
             ball.x += ball.vx;
             ball.y += ball.vy;
 
-            // --- 2. HANDLE COLLISIONS ---
+            // Update ball glow based on speed
+            ball.glowIntensity = Math.min(speed / MAX_VELOCITY, 1);
+
+            // Add to trail
+            ballTrail.push({ x: ball.x, y: ball.y });
+            if (ballTrail.length > 10) {
+                ballTrail.shift();
+            }
+        }
+
+        function handleCollisions() {
             const distFromCenter = Math.sqrt(Math.pow(ball.x - plate.x, 2) + Math.pow(ball.y - plate.y, 2));
 
             if (distFromCenter > plate.radius - ball.radius) {
-                // Ball is at or beyond the edge of the plate
                 const angle = Math.atan2(ball.y - plate.y, ball.x - plate.x);
                 
-                // Reposition the ball to be exactly on the edge
+                // Reposition ball
                 ball.x = plate.x + Math.cos(angle) * (plate.radius - ball.radius);
                 ball.y = plate.y + Math.sin(angle) * (plate.radius - ball.radius);
 
-                // Simulate a bounce by reflecting the velocity vector
+                // Calculate bounce with damping
                 const dot = ball.vx * Math.cos(angle) + ball.vy * Math.sin(angle);
-                ball.vx -= 1.5 * dot * Math.cos(angle); // 1.5 gives a little bounce
-                ball.vy -= 1.5 * dot * Math.sin(angle);
+                ball.vx -= (1 + BOUNCE_DAMPING) * dot * Math.cos(angle);
+                ball.vy -= (1 + BOUNCE_DAMPING) * dot * Math.sin(angle);
+
+                // Create particles on collision
+                for (let i = 0; i < 5; i++) {
+                    particles.push(new Particle(ball.x, ball.y, '#ff6b6b'));
+                }
+
+                // Reduce control score
+                controlScore = Math.max(0, controlScore - 2);
             }
+        }
 
-            // --- 3. DRAW EVERYTHING ---
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        function updateUI() {
+            // Update sensor display
+            document.getElementById('tilt-x-value').textContent = smoothedAccelX.toFixed(1);
+            document.getElementById('tilt-y-value').textContent = smoothedAccelY.toFixed(1);
+            
+            const speed = Math.sqrt(ball.vx * ball.vx + ball.vy * ball.vy);
+            document.getElementById('speed-value').textContent = speed.toFixed(1);
 
-            // Draw the plate
+            // Update sensor bars
+            const xPercent = Math.min(100, Math.abs(smoothedAccelX) * 10);
+            const yPercent = Math.min(100, Math.abs(smoothedAccelY) * 10);
+            document.getElementById('tilt-x-fill').style.width = xPercent + '%';
+            document.getElementById('tilt-y-fill').style.width = yPercent + '%';
+
+            // Update game stats
+            gameTime = Math.floor((Date.now() - gameStartTime) / 1000);
+            document.getElementById('time-value').textContent = gameTime + 's';
+            document.getElementById('control-score').textContent = Math.floor(controlScore) + '%';
+
+            // Gradually recover control score
+            controlScore = Math.min(100, controlScore + 0.1);
+        }
+
+        function updateParticles() {
+            particles = particles.filter(particle => {
+                const alive = particle.update();
+                if (alive) particle.draw();
+                return alive;
+            });
+
+            // Add ambient particles occasionally
+            if (Math.random() < 0.02) {
+                const angle = Math.random() * Math.PI * 2;
+                const radius = plate.radius * 0.8;
+                const x = plate.x + Math.cos(angle) * radius;
+                const y = plate.y + Math.sin(angle) * radius;
+                particles.push(new Particle(x, y, 'rgba(0, 122, 255, 0.5)'));
+            }
+        }
+
+        // --- DRAWING FUNCTIONS ---
+        function drawPlate() {
+            plateRotation += 0.002;
+
+            // Draw outer glow
+            ctx.save();
+            ctx.shadowColor = '#007aff';
+            ctx.shadowBlur = 20;
             ctx.beginPath();
             ctx.arc(plate.x, plate.y, plate.radius, 0, Math.PI * 2);
-            ctx.fillStyle = '#4a4a4a';
+            ctx.strokeStyle = 'rgba(0, 122, 255, 0.3)';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+            ctx.restore();
+
+            // Draw main plate with gradient
+            const plateGradient = ctx.createRadialGradient(
+                plate.x, plate.y, 0,
+                plate.x, plate.y, plate.radius
+            );
+            plateGradient.addColorStop(0, '#4a4a4a');
+            plateGradient.addColorStop(0.7, '#3a3a3a');
+            plateGradient.addColorStop(1, '#2a2a2a');
+
+            ctx.beginPath();
+            ctx.arc(plate.x, plate.y, plate.radius, 0, Math.PI * 2);
+            ctx.fillStyle = plateGradient;
             ctx.fill();
+
+            // Draw concentric circles for depth
+            for (let i = 1; i <= 3; i++) {
+                ctx.beginPath();
+                ctx.arc(plate.x, plate.y, plate.radius * (0.3 * i), 0, Math.PI * 2);
+                ctx.strokeStyle = `rgba(255, 255, 255, ${0.1 - i * 0.02})`;
+                ctx.lineWidth = 1;
+                ctx.stroke();
+            }
+
+            // Draw border
+            ctx.beginPath();
+            ctx.arc(plate.x, plate.y, plate.radius, 0, Math.PI * 2);
             ctx.strokeStyle = '#666';
             ctx.lineWidth = 4;
             ctx.stroke();
+        }
 
-            // Draw the ball with a lighting effect
+        function drawBallTrail() {
+            if (ballTrail.length < 2) return;
+
+            ctx.save();
+            for (let i = 0; i < ballTrail.length - 1; i++) {
+                const alpha = (i / ballTrail.length) * 0.3;
+                const point = ballTrail[i];
+                
+                ctx.globalAlpha = alpha;
+                ctx.beginPath();
+                ctx.arc(point.x, point.y, ball.radius * 0.5, 0, Math.PI * 2);
+                ctx.fillStyle = '#007aff';
+                ctx.fill();
+            }
+            ctx.restore();
+        }
+
+        function drawBall() {
+            // Draw ball shadow
+            ctx.save();
+            ctx.globalAlpha = 0.3;
+            ctx.beginPath();
+            ctx.arc(ball.x + 2, ball.y + 2, ball.radius, 0, Math.PI * 2);
+            ctx.fillStyle = '#000000';
+            ctx.fill();
+            ctx.restore();
+
+            // Draw ball glow
+            if (ball.glowIntensity > 0) {
+                ctx.save();
+                ctx.shadowColor = '#007aff';
+                ctx.shadowBlur = 20 + ball.glowIntensity * 10;
+                ctx.beginPath();
+                ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(0, 122, 255, ${0.3 + ball.glowIntensity * 0.3})`;
+                ctx.fill();
+                ctx.restore();
+            }
+
+            // Draw main ball with gradient
+            const ballGradient = ctx.createRadialGradient(
+                ball.x - ball.radius/3, ball.y - ball.radius/3, ball.radius/4,
+                ball.x, ball.y, ball.radius
+            );
+            ballGradient.addColorStop(0, '#ff8a80');
+            ballGradient.addColorStop(0.4, '#f44336');
+            ballGradient.addColorStop(1, '#d32f2f');
+
             ctx.beginPath();
             ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
-            const ballGradient = ctx.createRadialGradient(ball.x - ball.radius/3, ball.y - ball.radius/3, ball.radius/4, ball.x, ball.y, ball.radius);
-            ballGradient.addColorStop(0, '#ff8a80');
-            ballGradient.addColorStop(1, '#d32f2f');
             ctx.fillStyle = ballGradient;
             ctx.fill();
+
+            // Draw ball highlight
+            ctx.beginPath();
+            ctx.arc(ball.x - ball.radius/3, ball.y - ball.radius/3, ball.radius/4, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+            ctx.fill();
+
+            // Draw ball border
+            ctx.beginPath();
+            ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
             ctx.strokeStyle = '#b71c1c';
             ctx.lineWidth = 2;
             ctx.stroke();
+        }
 
-            // Request the next frame
+        // --- MAIN GAME LOOP ---
+        function gameLoop() {
+            if (!isGameRunning) return;
+
+            // Clear canvas with fade effect for trail
+            ctx.fillStyle = 'rgba(44, 44, 44, 0.1)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Update game logic
+            updatePhysics();
+            handleCollisions();
+            updateUI();
+            updateParticles();
+
+            // Draw everything
+            drawPlate();
+            drawBallTrail();
+            drawBall();
+
+            // Continue loop
             requestAnimationFrame(gameLoop);
         }
+
+        // --- EVENT LISTENERS ---
+        window.addEventListener('resize', resizeCanvas);
+        startButton.addEventListener('click', requestMotionPermission);
 
         // --- INITIALIZE ---
         resizeCanvas();
